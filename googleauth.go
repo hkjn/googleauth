@@ -1,6 +1,6 @@
 // Package googleauth provides OAuth sign-in using Google+.
 //
-// The minimum setup needed is:
+// Minimum setup needed:
 //   - Specify client G+ credentials with SetCredentials()
 //   - Specify a gating function with SetGatingFunc()
 //   - Register a HTTP GET route at /connect for ConnectHandler
@@ -93,14 +93,20 @@ func IsLoggedIn(r *http.Request) (bool, error) {
 
 // LoginInfo represents the user's login info.
 type LoginInfo struct {
-	ClientId string // id of client
-	StateURI string // URL with one-time authorization code
+	ClientId   string // id of client
+	StateToken string // state token
 }
 
-// LogIn returns the user's login info and starts the auth process.
+// LogIn returns the user's login info, starting the auth process.
+//
+// LogIn generates a state token, which along with the client id
+// should be returned to the user where the front-end library can
+// exchange them for a one-time authorization code. That one-time
+// authorization code is then passed in to /connect, which finishes
+// the auth process.
 func LogIn(w http.ResponseWriter, r *http.Request) (*LoginInfo, error) {
 	// Create a state token to prevent request forgery and store it in the session
-	// for later validation
+	// for later validation.
 	session, err := getSession(r)
 	if err != nil {
 		return nil, err
@@ -116,8 +122,9 @@ func LogIn(w http.ResponseWriter, r *http.Request) (*LoginInfo, error) {
 	return &LoginInfo{oauthConfig.ClientId, url.QueryEscape(state)}, nil
 }
 
-// Connect exchanges the one-time authorization code for a token and stores the
-// token in the session
+// Connect finishes the connection process, exchanging the one-time
+// authorization code for an access token and storing it in the
+// session.
 func Connect(w http.ResponseWriter, r *http.Request) error {
 	loggedIn, err := IsLoggedIn(r)
 	if err != nil {

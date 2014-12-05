@@ -35,8 +35,7 @@ var (
       },
       logIn: function(code) {
         window.location.replace(
-          window.location.origin + "/connect?state=" +
-          $("#state").html() + "&code=" + code);
+          window.location.origin + "/connect?state={{.StateToken}}&code=" + code);
       }
     };
   })();
@@ -48,8 +47,6 @@ function signInCallback(authResult) {
 {{end}}
 
 {{define "body"}}
-<span class style="display: none" id="state">{{.StateURI}}</span>
-
 <div id="gConnect">
 <span id="signinButton">
   <span
@@ -62,7 +59,7 @@ function signInCallback(authResult) {
   </span>
 </span>
 </div>
-{{template "scripts"}}
+{{template "scripts" .}}
 {{end}}
 
 {{define "login"}}
@@ -80,11 +77,11 @@ function signInCallback(authResult) {
 
 // RequireLogin returns a wrapped handler func that enforces Google+ login.
 //
-// If the user is logged in, the specific HandlerFunc is called, otherwise the
+// If the user is logged in, the specified HandlerFunc is called, otherwise the
 // login page defined by LoginTmpl is served.
 //
-// RequireLogin serves status 500 if the template fails to render or
-// the package has an internal error.
+// RequireLogin returns HTTP 500 (Internal Server Error) if the
+// template fails to render or the package has an internal error.
 func RequireLogin(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		loggedIn, err := IsLoggedIn(r)
@@ -114,14 +111,14 @@ func RequireLogin(fn http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// ConnectHandler finished the connection process, exchanging the
-// one-time authorization code for a token and stores the token in the
-// session.
+// ConnectHandler finishes the connection process, exchanging the
+// one-time authorization code for an access token and storing it in
+// the session.
 //
 // ConnectHandler redirects to the request "referer" on successful login.
 //
-// ConnectHandler returns 401 Unauthorized if the user does not have
-// access.
+// ConnectHandler returns HTTP 401 (Unauthorized) if the user does not
+// have access.
 func ConnectHandler(w http.ResponseWriter, r *http.Request) {
 	err := Connect(w, r)
 	if err != nil {
