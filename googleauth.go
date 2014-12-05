@@ -1,16 +1,19 @@
 // Package googleauth provides OAuth sign-in using Google+.
 //
 // Minimum setup needed:
-//   - Specify client G+ credentials with SetCredentials()
-//   - Specify a gating function with SetGatingFunc()
-//   - Register a HTTP GET route at /connect for ConnectHandler
-//   - Wrap any HTTP routes that should be authenticated with RequireLogin()
+//   1. Specify client G+ credentials with SetCredentials()
+//   2. Specify a gating function with SetGatingFunc()
+//   3. Register a HTTP GET route at /connect for ConnectHandler
+//   4. Wrap any HTTP routes that should be authenticated with RequireLogin()
 //
 // This will send users accessing the resources under authentication
 // to a simple page with a G+ button, and if SetGatingFunc accepts
 // that G+ id, the user is redirected to the original URL.
 //
 // The login page can be changed by setting a different LoginTmpl.
+//
+// If more control is desired, IsLoggedIn, LogIn and Connect can be
+// used directly, but with the steps above it's not necessary.
 package googleauth
 
 // TODO: abstract away use of glog in favor of a generic logger; it
