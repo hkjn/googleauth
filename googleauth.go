@@ -29,9 +29,9 @@ import (
 	"net/url"
 	"strings"
 
-	"code.google.com/p/goauth2/oauth"
 	"github.com/golang/glog"
 	"github.com/gorilla/sessions"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -39,12 +39,14 @@ var (
 	isAllowed   = func(string) bool { return false }
 	sessionName = "gplusclient"                                     // name of Gorilla session cookie
 	store       = sessions.NewCookieStore([]byte(randomString(32))) // Gorilla session store
-	oauthConfig = &oauth.Config{                                    // config supplied to the OAuth package
+	oauthConfig = &oauth2.Config{                                   // config supplied to the OAuth package
 		// Scope determines which API calls we are authorized to make. We
 		// only want the basics.
-		Scope:    "profile",
-		AuthURL:  "https://accounts.google.com/o/oauth2/auth",
-		TokenURL: "https://accounts.google.com/o/oauth2/token",
+		Scopes: []string{"profile"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://accounts.google.com/o/oauth2/auth",
+			TokenURL: "https://accounts.google.com/o/oauth2/token",
+		},
 		// Setting "postmessage" means that we're handling the access
 		// token exchange server-side.
 		RedirectURL: "postmessage",
@@ -59,7 +61,7 @@ func isAccessDenied(err error) bool {
 
 // SetCredential specifies the client G+ credentials.
 func SetCredentials(clientId, clientSecret string) {
-	oauthConfig.ClientId = clientId
+	oauthConfig.ClientID = clientId
 	oauthConfig.ClientSecret = clientSecret
 }
 
@@ -122,7 +124,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) (*LoginInfo, error) {
 		return nil, fmt.Errorf("failed to save state in session: %v", err)
 	}
 	glog.V(1).Infof("CheckLogin set state=%v in user's session\n", state)
-	return &LoginInfo{oauthConfig.ClientId, url.QueryEscape(state)}, nil
+	return &LoginInfo{oauthConfig.ClientID, url.QueryEscape(state)}, nil
 }
 
 // Connect finishes the connection process, exchanging the one-time
@@ -195,7 +197,7 @@ func Connect(w http.ResponseWriter, r *http.Request) error {
 // exchange takes an authentication code and exchanges it with the OAuth
 // endpoint for a Google API bearer token and a Google+ ID.
 func exchange(code string) (accessToken string, idToken string, err error) {
-	if oauthConfig.ClientId == "" {
+	if oauthConfig.ClientID == "" {
 		return "", "", fmt.Errorf("missing client id")
 	}
 	if oauthConfig.ClientSecret == "" {
@@ -207,7 +209,7 @@ func exchange(code string) (accessToken string, idToken string, err error) {
 	values := url.Values{
 		"Content-Type":  {"application/x-www-form-urlencoded"},
 		"code":          {code},
-		"client_id":     {oauthConfig.ClientId},
+		"client_id":     {oauthConfig.ClientID},
 		"client_secret": {oauthConfig.ClientSecret},
 		"redirect_uri":  {oauthConfig.RedirectURL},
 		"grant_type":    {"authorization_code"},
