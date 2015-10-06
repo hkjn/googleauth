@@ -1,8 +1,8 @@
 package: hkjn.me/googleauth
 import:
-  - package: github.com/golang/glog
   - package: github.com/gorilla/context
   - package: github.com/gorilla/securecookie
   - package: github.com/gorilla/sessions
+  - package: github.com/golang/glog
   - package: golang.org/x/net
   - package: golang.org/x/oauth2
