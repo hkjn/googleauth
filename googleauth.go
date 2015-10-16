@@ -14,7 +14,7 @@
 //
 // If more control is desired, IsLoggedIn, LogIn and Connect can be
 // used directly, but with the steps above it's not necessary.
-package googleauth // import "hkjn.me/googleauth"
+package googleauth
 
 // TODO: abstract away use of glog in favor of a generic logger; it
 // would break on app engine since it writes to local disk.
